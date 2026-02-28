@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Researcher {
+  id           String      @id @default(uuid())
+  name         String
+  email        String      @unique
+  affiliation  String?
+  passwordHash String
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  algorithms   Algorithm[]
+}
+
+model Algorithm {
+  id           String       @id @default(uuid())
+  name         String
+  version      String
+  category     String
+  description  String
+  sourceCode   String
+  language     String
+  compiledHash String?
+  researcherId String
+  researcher   Researcher   @relation(fields: [researcherId], references: [id])
+  benchmarks   Benchmark[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  verified     Boolean      @default(false)
+  
+  @@unique([name, version])
+}
+
+model Benchmark {
+  id              String    @id @default(uuid())
+  algorithmId     String
+  algorithm       Algorithm @relation(fields: [algorithmId], references: [id])
+  
+  keyGenTime      Float
+  signTime        Float?
+  verifyTime      Float?
+  encapsTime      Float?
+  decapsTime      Float?
+  
+  peakMemory      Int
+  stackUsage      Int?
+  
+  publicKeySize   Int
+  secretKeySize   Int
+  signatureSize   Int?
+  ciphertextSize  Int?
+  
+  cpuModel        String
+  cpuCores        Int
+  ramMb           Int
+  osVersion       String
+  compilerVersion String
+  
+  runHash         String
+  chainTxHash     String?
+  
+  createdAt       DateTime  @default(now())
+}
+
+model LeaderboardEntry {
+  id            String   @id @default(uuid())
+  algorithmId   String   @unique
+  algorithmName String
+  category      String
+  
+  speedScore    Float
+  memoryScore   Float
+  sizeScore     Float
+  overallScore  Float
+  
+  bestKeyGenTime    Float
+  bestSignTime      Float?
+  bestVerifyTime    Float?
+  bestEncapsTime    Float?
+  bestDecapsTime    Float?
+  lowestMemory      Int
+  
+  runCount      Int
+  lastUpdated   DateTime @updatedAt
+}
